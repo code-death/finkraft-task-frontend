@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import callApi from "../../../utility/apiCaller.js";
 import dayjs from "dayjs";
-import {Button, DatePicker, Drawer, Form, Input, Modal, Select, Table} from "antd";
+import {Button, DatePicker, Drawer, Form, Input, Modal, Select, Table, Pagination, Spin} from "antd";
 import Loader from "../../../components/Loader.jsx";
 import {CodepenCircleFilled, DeleteFilled, EditFilled} from "@ant-design/icons";
 import {showNotification} from "../../../utility/utility.js";
@@ -25,19 +25,15 @@ const TableData = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [transactions, setTransactions] = useState([]);
     const [count, setCount] = useState(0);
+    const [pageNum, setPageNum] = useState(1);
+    const [pageSize, setSize] = useState(50);
     const [activeTransaction, setActiveTransaction] = useState({});
     const [editFormOpen, setEditFormOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [tableParams, setTableParams] = useState({
-        pagination: {
-            current: 1,
-            pageSize: 50,
-        },
-    });
 
     useEffect(() => {
-        fetchTransactionData();
-    }, []);
+        fetchTransactionData(pageNum, pageSize);
+    }, [pageSize, pageNum]);
 
     const fetchTransactionData = (pageNum, pageSize) => {
         callApi('transactions/list', 'post', {
@@ -47,13 +43,6 @@ const TableData = () => {
             if (res.status === 'Success') {
                 setTransactions(res.data.transactionList);
                 setCount(res.data.transactionCount);
-                setTableParams((prev) => ({
-                    ...prev,
-                    pagination: {
-                        ...prev.pagination,
-                        count: res.data.transactionCount
-                    }
-                }))
                 setIsLoading(false);
             }
         }).catch(e => {
@@ -166,22 +155,15 @@ const TableData = () => {
     const handleChange = (keyName, keyValue) => {
         setActiveTransaction({
             ...activeTransaction,
-            keyName: keyValue
+            [keyName]: keyValue
         })
-    }
-
-    const handleTableChange = (pagination, filters, sorter) => {
-        setTableParams({
-            pagination,
-        });
     }
 
     return (
         isLoading ? <Loader/> :
             <div
                 style={{
-                    height: '100%',
-                    overflow: "scroll"
+                    height: '100%'
                 }}
             >
                 <Modal
@@ -189,6 +171,7 @@ const TableData = () => {
                     onCancel={handleDeleteCancel}
                     okText={'Delete'}
                     onOk={handleDeleteTransaction}
+                    okType={'danger'}
                 >
                     Are you Sure you want to delete this transaction ?
                 </Modal>
@@ -204,28 +187,50 @@ const TableData = () => {
                     <Input style={{margin: "16px 0"}} disabled type={'text'}
                            defaultValue={activeTransaction.TransactionID}/>
                     <label>CustomerName</label>
-                    <Input onChange={(value) => handleChange('CustomerName', value)} style={{margin: "16px 0"}} type={'text'}
+                    <Input onChange={(e) => handleChange('CustomerName', e.target.value)} style={{margin: "16px 0"}} type={'text'}
                            defaultValue={activeTransaction.CustomerName}/>
                     <label>TransactionDate</label>
                     <DatePicker onChange={e => handleChange('TransactionDate', dayjs(e).toISOString())} defaultValue={dayjs(activeTransaction.TransactionDate)} style={{margin: "16px 0", display: "block"}} />
                     <label>Amount</label>
-                    <Input onChange={(value) => handleChange('Amount', value)} style={{margin: "16px 0"}} type={'number'}
+                    <Input onChange={(e) => handleChange('Amount', e.target.value)} style={{margin: "16px 0"}} type={'number'}
                            defaultValue={activeTransaction.Amount}/>
                     <label>Status</label>
                     <Select onChange={e => handleChange('Status', e)} options={transactionTypes} style={{margin: "16px 0", display: "block"}} defaultValue={activeTransaction.Status}/>
                     <label>InvoiceURL</label>
-                    <Input onChange={(value) => handleChange('InvoiceURL', value)} style={{margin: "16px 0"}} type={'text'}
+                    <Input onChange={(e) => handleChange('InvoiceURL', e.target.value)} style={{margin: "16px 0"}} type={'text'}
                            defaultValue={activeTransaction.InvoiceURL}/>
                 </Drawer>
-                <Table
-                    onChange={handleTableChange}
-                    style={{maxHeight: "80vh"}}
-                    pagination={tableParams.pagination}
-                    dataSource={transactions.map(transaction => ({
-                        ...transaction,
-                        key: transaction._id,
-                        TransactionData: dayjs(transaction.TransactionData).format('DD/MMM/YYYY')
-                    }))} columns={columns}/>
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: "space-between",
+                        margin: "16px 0"
+                    }}
+                >
+                    <p>Total Transactions: {count}</p>
+                    <Pagination
+                        defaultPageSize={pageSize}
+                        showSizeChanger
+                        onShowSizeChange={(_, size) => setSize(size)}
+                        onChange={e => setPageNum(parseInt(e))}
+                        defaultCurrent={1}
+                        total={count}
+                    />
+                </div>
+                <div
+                    style={{
+                        overflow: "scroll"
+                    }}
+                >
+                    <Table
+                        pagination={false}
+                        style={{maxHeight: "80vh"}}
+                        dataSource={transactions.map(transaction => ({
+                            ...transaction,
+                            key: transaction._id,
+                            TransactionData: dayjs(transaction.TransactionData).format('DD/MMM/YYYY')
+                        }))} columns={columns}/>
+                </div>
             </div>
     )
 }

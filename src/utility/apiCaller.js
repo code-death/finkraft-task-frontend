@@ -25,25 +25,22 @@ export default function callApi(endpoint, method = 'get', body) {
         .catch((error) => error);
 }
 
-export function callUploadApi(endpoint, method = 'get', body) {
-    const token = window.localStorage.getItem('token') ? window.localStorage.getItem('token') : '';
-    const headers = {
-        'content-type': 'application/json',
-    };
-    if (token && token !== '') {
-        headers.Authorization = `Bearer ${token}`;
-    }
+export function callUploadApi(endpoint, file) {
+    const formData = new FormData();
+    formData.append('transactions', file); // Assuming 'file' is the key for the file in the API
+
     return axios({
-        method: method,
+        method: 'post',
         url: `${API_URL}/${endpoint}`,
-        headers: headers,
-        data: body,
+        headers: {
+            'Content-Type': 'multipart/form-data', // Ensure correct content type for file upload
+        },
+        data: formData,
     })
         .then((response) => {
-            if (!response.ok) {
-                return Promise.reject(response.data);
-            }
-            return response.data;
+            return response.data; // No need to check for response.ok, axios handles HTTP status codes
         })
-        .catch((error) => error);
+        .catch((error) => {
+            return Promise.reject(error.response ? error.response.data : error.message);
+        });
 }
