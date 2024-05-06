@@ -1,8 +1,17 @@
-# React + Vite
+# finkraft task Frontend Code Repo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Backend Repo Link - https://github.com/code-death/finkraft-task-backend
+Frontend Repo Link - https://github.com/code-death/finkraft-task-frontend
 
-Currently, two official plugins are available:
+## Deployments
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Backend - https://finkraft-task-backend.onrender.com
+- Frontend - https://finkraft-task-frontend.vercel.app
+
+### Tabs
+
+1. Transactions :-
+   1. Graphs - Contains a pie chart representing the Stats for payment Status     
+   2. Data - Contains all the transactions, with Update and Delete functionality
+   3. Bulk Upload - Upload CSV data to add multiple transactions
+
